@@ -57,6 +57,33 @@ test/                 vitest
 
 UTMs and referral codes are always forwarded. `to`, `preview` and `ua` are not.
 
+## How routing works
+
+Every visit to `/` runs `src/handoff.ts`:
+
+1. **Pick the destination**: `resolveTarget()` in `src/links.ts`.
+   - If `?to=` is set, it must be `https://` on a host in `allowedHosts` (`katana.network` or any subdomain). Anything else is ignored, so the page can't be used as an open redirect.
+   - Otherwise it uses `defaultTarget`, plus the request path if `pathPassthrough` is on.
+   - All other query params (UTMs, `ref`, …) are appended.
+2. **Detect the environment**: `current()` in `src/detect.ts` parses the user agent (device, OS, browser, in-app browser, wallet browser) and checks `window.ethereum` and the other wallet globals.
+3. **Decide**: `decide()` in `src/detect.ts` checks these in order and stops at the first match:
+
+   | Check | Result |
+   |---|---|
+   | `?preview=1` | show picker |
+   | Inside a frame | show picker |
+   | Desktop | redirect (if `autoRedirectDesktop`) |
+   | Wallet detected (UA or injected provider) | redirect (if `autoRedirectInWallet`) |
+   | In-app browser (X, Instagram, …) | show picker + "open in browser" note |
+   | Anything else (phone browser) | show picker |
+
+4. **Redirect or render**:
+   - **Redirect** means `location.replace(target)`, so the handoff page doesn't stay in back history. Desktop and UA-identified wallet browsers redirect immediately.
+   - **Otherwise** the picker renders while the page listens for EIP-6963 wallet announcements for `providerScanMs` (300 ms). It then runs `decide()` again and redirects if a wallet showed up.
+5. **Wallet buttons**: these are plain `<a href>` deep links built by `walletLinks()` in `src/links.ts`. Each one opens the wallet app with `target` loaded in its dapp browser. If the page is still visible after `noOpenTimeoutMs` (2 s), the row shows a "Nothing opened?" hint.
+
+Path passthrough (`/trade/ETH`) relies on the catch-all rewrite in `public/_redirects`, which serves `index.html` for unknown paths.
+
 ## Run locally
 
 ```sh
