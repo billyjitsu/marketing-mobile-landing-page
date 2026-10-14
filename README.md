@@ -46,16 +46,6 @@ test/                 vitest
 vercel.json           hosting: build, rewrites, headers
 ```
 
-## URLs you can use
-
-| URL | Goes to |
-|---|---|
-| `go.katana.network/?utm_source=x&ref=abc` | `<defaultTarget>/?utm_source=x&ref=abc` |
-| `go.katana.network/trade/ETH` | `<defaultTarget>/trade/ETH` (path passthrough) |
-| `go.katana.network/?to=https://perps.katana.network/trade/BTC` | That URL, if the host is in `allowedHosts` |
-
-UTMs and referral codes are always forwarded. `to`, `preview` and `ua` are not.
-
 ## How routing works
 
 Every visit to `/` runs `src/handoff.ts`:
