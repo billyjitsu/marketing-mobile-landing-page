@@ -158,3 +158,12 @@ body.is-redirecting .redirecting { display: block; color: var(--white-56); font-
   flex: 1; min-width: 0; height: 40px; padding: 0 12px; border-radius: 12px;
   border: 1px solid var(--white-8); background: var(--white-4); color: var(--white-100); font: inherit; font-size: 13px;
 }
+
+/* Two paths: wallet app (trade) or browser (explore). */
+.section-label { margin: 8px 0 -4px; padding: 0 4px; font-size: 13px; color: var(--white-56); display: flex; align-items: center; gap: 8px; }
+.divider { display: flex; align-items: center; gap: 12px; margin: 4px 0; font-size: 12px; color: var(--white-32); }
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--white-8); }
+.explore { display: flex; flex-direction: column; gap: 8px; }
+.btn-block { width: 100%; }
+.explore-sub { margin: 0; text-align: center; font-size: 12px; color: var(--white-48); }
+.linkbtn { background: none; border: 0; padding: 0; font: inherit; color: var(--white-100); text-decoration: underline; cursor: pointer; }

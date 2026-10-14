@@ -97,7 +97,7 @@ function render() {
 
   const copyBtn = $<HTMLButtonElement>("copyBtn");
   copyBtn.addEventListener("click", () => {
-    copyWithFeedback(target, copyBtn.querySelector("span")!, "Copy link");
+    copyWithFeedback(target, copyBtn.querySelector("span")!, "copy the link");
   });
 
   function renderInAppNotice() {
