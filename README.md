@@ -71,7 +71,7 @@ Every visit to `/` runs `src/handoff.ts`:
    - **Otherwise** the picker renders while the page listens for EIP-6963 wallet announcements for `providerScanMs` (300 ms). It then runs `decide()` again and redirects if a wallet showed up.
 5. **Wallet buttons**: these are plain `<a href>` deep links built by `walletLinks()` in `src/links.ts`. Each one opens the wallet app with `target` loaded in its dapp browser. If the page is still visible after `noOpenTimeoutMs` (2 s), the row shows a "Nothing opened?" hint.
 
-Path passthrough (`/trade/ETH`) needs the host to serve `index.html` for unknown paths (see [Deploy](#deploy)).
+Path passthrough (`/trade/ETH`) needs the host to serve `index.html` for unknown paths.
 
 ## Run locally
 
@@ -85,32 +85,6 @@ npm run preview    # serve dist/
 ```
 
 Deep links **can't** be tested from localhost on a phone or from a desktop emulator. Deploy first.
-
-## Deploy
-
-`npm run build` outputs a fully static site to `dist/`. It's hosted on Vercel today, but any static host works (Cloudflare Pages, S3 + CloudFront, GitHub Pages, nginx…). `vercel.json` is the only host-specific file.
-
-### Vercel
-
-Import the repo in Vercel (*Add New → Project*). `vercel.json` sets everything below, plus the build command (`npm test && npm run build`) and output directory (`dist`), so no dashboard settings are needed. Then add `go.katana.network` under *Settings → Domains* and follow the DNS instructions there.
-
-CLI alternative:
-
-```sh
-npx vercel        # preview deploy
-npx vercel --prod # production
-```
-
-### Moving to another host
-
-Delete `vercel.json` and recreate these settings in the new host's config:
-
-- **Catch-all rewrite** (only for path passthrough): serve `/index.html` with a 200 for any path that isn't a real file, so `/trade/ETH` loads the handoff page. Real files (`/`, `/check/`, `/assets/*`) must still be served first.
-- **Caching**: `/assets/*` is content-hashed by Vite and can be cached as `public, max-age=31536000, immutable`. Keep HTML at `max-age=0, must-revalidate` so config changes go live on deploy.
-- **Security headers** (recommended): `Referrer-Policy: strict-origin-when-cross-origin`, `X-Content-Type-Options: nosniff`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`, `Strict-Transport-Security: max-age=31536000; includeSubDomains`.
-- **Domain**: point `go.katana.network` (or whatever you use) at the host over HTTPS.
-
-Run `npm test` before `npm run build` in the build step.
 
 ## Test on real devices
 
