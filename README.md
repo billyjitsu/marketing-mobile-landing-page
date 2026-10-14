@@ -45,6 +45,7 @@ src/wallet-icons.ts   wallet SVGs
 src/styles.css        styles (+ bg.jpg)
 public/               copied as-is into dist/ (favicon)
 test/                 vitest
+vercel.json           hosting: build, rewrites, headers
 ```
 
 ## URLs you can use
@@ -99,16 +100,29 @@ Deep links **can't** be tested from localhost on a phone or from a desktop emula
 
 ## Deploy
 
-`npm run build` outputs a fully static site to `dist/`. Host it anywhere that serves static files (Vercel, Cloudflare Pages, S3 + CloudFront, GitHub Pages, nginx…).
+`npm run build` outputs a fully static site to `dist/`. It's hosted on Vercel today, but any static host works (Cloudflare Pages, S3 + CloudFront, GitHub Pages, nginx…). `vercel.json` is the only host-specific file.
 
-Host settings to add:
+### Vercel
+
+Import the repo in Vercel (*Add New → Project*). `vercel.json` sets everything below, plus the build command (`npm test && npm run build`) and output directory (`dist`), so no dashboard settings are needed. Then add `go.katana.network` under *Settings → Domains* and follow the DNS instructions there.
+
+CLI alternative:
+
+```sh
+npx vercel        # preview deploy
+npx vercel --prod # production
+```
+
+### Moving to another host
+
+Delete `vercel.json` and recreate these settings in the new host's config:
 
 - **Catch-all rewrite** (only for path passthrough): serve `/index.html` with a 200 for any path that isn't a real file, so `/trade/ETH` loads the handoff page. Real files (`/`, `/check/`, `/assets/*`) must still be served first.
 - **Caching**: `/assets/*` is content-hashed by Vite and can be cached as `public, max-age=31536000, immutable`. Keep HTML at `max-age=0, must-revalidate` so config changes go live on deploy.
-- **Security headers** (recommended): `Referrer-Policy: strict-origin-when-cross-origin`, `X-Content-Type-Options: nosniff`, `Strict-Transport-Security: max-age=31536000; includeSubDomains`.
+- **Security headers** (recommended): `Referrer-Policy: strict-origin-when-cross-origin`, `X-Content-Type-Options: nosniff`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`, `Strict-Transport-Security: max-age=31536000; includeSubDomains`.
 - **Domain**: point `go.katana.network` (or whatever you use) at the host over HTTPS.
 
-Run `npm test` before `npm run build` in CI.
+Run `npm test` before `npm run build` in the build step.
 
 ## Analytics
 
