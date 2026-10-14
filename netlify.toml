@@ -1,0 +1,8 @@
+# Redirects and headers live in public/_redirects and public/_headers,
+# so they are copied into dist/ and also apply when dist/ is deployed by drag and drop.
+[build]
+  publish = "dist"
+  command = "npm test && npm run build"
+
+[build.environment]
+  NODE_VERSION = "22"

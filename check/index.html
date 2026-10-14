@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#040815">
+<meta name="robots" content="noindex">
+<title>Handoff Diagnostics</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<main class="page wide">
+
+  <a class="brand" href="/?preview=1"><svg viewBox="0 0 71 24" fill="none" role="img" aria-label="Katana Perps"><path d="M8.27539 0V8.3623L13.0039 0H17.7324L14.1855 11.9697H10.6699L20.127 16.7578L15.3682 24L8.27539 15.582V21.5459H0L2.83691 11.9697H0L3.54688 0H8.27539Z" fill="#F4FF00"/><path d="M65.9019 18.0187C63.843 18.0187 62.7229 16.9316 62.7229 15.0703V14.6915H63.8924V14.9056C63.8924 15.9927 64.6006 16.6351 65.7866 16.6351H67.4667C68.5702 16.6351 69.2126 16.0421 69.2126 15.0044V14.5597C69.2126 13.4891 68.5702 12.8631 67.4667 12.8631H65.5724C63.7771 12.8631 62.7229 11.7925 62.7229 9.96418V9.65122C62.7229 7.8229 63.7771 6.75226 65.5724 6.75226H67.4831C69.3114 6.75226 70.3491 7.77349 70.3491 9.51945V9.8983H69.1797V9.6677C69.1797 8.69588 68.5702 8.11938 67.5325 8.11938H65.5889C64.4853 8.11938 63.8924 8.67941 63.8924 9.71711V9.93124C63.8924 10.9854 64.4853 11.5619 65.5889 11.5619H67.4008C69.3114 11.5619 70.3986 12.6655 70.3986 14.5268V15.0703C70.3986 16.9316 69.295 18.0187 67.4172 18.0187H65.9019Z" fill="#F4FF00"/><path d="M53.6228 17.9857V6.78519H58.103C60.129 6.78519 61.249 8.00407 61.249 9.91475V11.0842C61.249 12.929 60.0796 14.1644 58.103 14.1644H54.8417V17.9857H53.6228ZM54.8417 12.8137H57.9712C59.2725 12.8137 60.0302 12.1549 60.0302 11.0183V9.96417C60.0302 8.82764 59.2725 8.16878 57.9712 8.16878H54.8417V12.8137Z" fill="#F4FF00"/><path d="M44.245 17.9857V6.78519H49.0382C50.7512 6.78519 51.7724 7.757 51.7724 9.40414V11.1336C51.7724 12.369 51.0806 13.242 49.9441 13.5055L52.1348 17.9857H50.8335L48.7252 13.7032H45.4639V17.9857H44.245ZM45.4639 12.369H49.0382C50.0264 12.369 50.57 11.8419 50.57 10.8536V9.75004C50.57 8.72881 49.9935 8.16878 48.9393 8.16878H45.4639V12.369Z" fill="#F4FF00"/><path d="M35.0764 17.9857V6.78519H42.3403V8.20173H36.2953V11.5289H42.3403V12.962H36.2953V16.5692H42.3403V17.9857H35.0764Z" fill="#F4FF00"/><path d="M25.7952 17.9856V6.7851H30.2754C32.3014 6.7851 33.4214 8.00398 33.4214 9.91466V11.0841C33.4214 12.9289 32.2519 14.1643 30.2754 14.1643H27.014V17.9856H25.7952ZM27.014 12.8136H30.1436C31.4448 12.8136 32.2025 12.1548 32.2025 11.0182V9.96407C32.2025 8.82755 31.4448 8.16869 30.1436 8.16869H27.014V12.8136Z" fill="#F4FF00"/></svg></a>
+
+  <h1>What this browser looks like</h1>
+  <p class="lede">Open this page on each phone and app you want to test. It shows what the handoff page detects and gives you every deep link to try.</p>
+
+  <div class="verdict" id="verdict">
+    <div class="label">The handoff page would</div>
+    <div class="value" id="verdictValue">Checking…</div>
+    <div class="why" id="verdictWhy"></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-subtle" id="copyReport" type="button"><span>Copy report</span></button>
+    <button class="btn btn-subtle" id="rescan" type="button">Re-scan</button>
+    <a class="btn btn-subtle" id="previewLink" href="/?preview=1">Open picker</a>
+  </div>
+
+  <h2>Device and browser</h2>
+  <div class="card"><table class="kv" id="envTable"></table></div>
+
+  <h2>Wallets detected</h2>
+  <div class="card"><table class="kv" id="walletTable"></table></div>
+
+  <h2>Target</h2>
+  <div class="field">
+    <input id="targetInput" type="url" inputmode="url" autocomplete="off" spellcheck="false" aria-label="Target URL">
+    <button class="btn btn-subtle btn-sm" id="targetApply" type="button">Rebuild links</button>
+  </div>
+  <p class="fineprint" id="targetNote"></p>
+
+  <h2>Wallet deep links</h2>
+  <div class="card" id="walletLinks"></div>
+
+  <h2>Escape the in-app browser</h2>
+  <div class="card" id="escapeLinks"></div>
+
+  <h2>Raw</h2>
+  <div class="card"><table class="kv" id="rawTable"></table></div>
+
+  <p class="fineprint">Tip: add <span class="mono">?ua=…</span> to this URL to see how any user agent string would be classified. Wallet detection always reflects the real browser.</p>
+  <p class="fineprint">Deep links only hand off from a direct tap on a real hosted page. Don't type them into the address bar; iOS won't open an app from a typed URL.</p>
+
+</main>
+
+<script type="module" src="/src/check.ts"></script>
+</body>
+</html>

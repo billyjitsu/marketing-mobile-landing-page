@@ -1,0 +1,4 @@
+# Any unknown path renders the handoff page, which forwards the path to the app:
+#   go.example.com/trade/ETH  ->  <defaultTarget>/trade/ETH
+# Real files (/, /check/, /assets/*) are served first because this isn't forced.
+/*  /index.html  200
