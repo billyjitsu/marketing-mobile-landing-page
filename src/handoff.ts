@@ -87,7 +87,7 @@ function render() {
     const timer = setTimeout(() => {
       cleanup();
       if (!left) {
-        setRowStatus(row, "Nothing opened? " + w.name + " may not be installed. Try another wallet or continue in your browser.");
+        setRowStatus(row, "Nothing opened? " + w.name + " may not be installed. Try another wallet or explore without connecting.");
       }
     }, C.noOpenTimeoutMs);
   }

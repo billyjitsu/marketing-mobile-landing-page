@@ -172,3 +172,5 @@ body.is-redirecting .redirecting { display: block; color: var(--white-56); font-
 .page > .lede { text-align: center; margin: 0 auto; max-width: 38ch; }
 /* .btn is flex: 1 for side-by-side rows; in the column layout that collapsed its height. */
 .btn-block { flex: none; }
+.btn-yellow { background: var(--yellow-100); color: var(--gray-900); font-weight: 500; }
+.btn-yellow:active { filter: brightness(0.9); }
