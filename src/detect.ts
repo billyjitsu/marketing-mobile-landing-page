@@ -312,7 +312,11 @@ export function scanProviders(win: Window, wait: number, cb: (wallet: WalletScan
     const key = info.uuid || info.rdns;
     if (seen[key]) return;
     seen[key] = true;
-    found.push({ source: "eip6963", id: walletFromRdns(info.rdns), name: info.name, rdns: info.rdns });
+    const id = walletFromRdns(info.rdns);
+    // The same wallet often shows up both as a window global and via EIP-6963; keep one entry.
+    const dup = id !== "unknown" ? found.find((p) => p.id === id) : undefined;
+    if (dup) { dup.rdns = dup.rdns || info.rdns; return; }
+    found.push({ source: "eip6963", id, name: info.name, rdns: info.rdns });
   }
   try {
     win.addEventListener("eip6963:announceProvider", onAnnounce);
@@ -348,8 +352,14 @@ export function isFramed(win: Window): boolean {
   try { return win.self !== win.top; } catch { return true; }
 }
 
+// Providers that don't mean the visitor is inside a wallet app: Brave's built-in wallet is
+// injected whether or not it has been set up, and unrecognised providers are too uncertain.
+const NOT_A_WALLET_APP = ["brave", "unknown"];
+
+/** True when the visitor is already inside a wallet's browser, so the picker can be skipped. */
 export function hasWallet(env: Pick<Env, "wallet" | "walletUA">): boolean {
-  return !!((env.wallet && env.wallet.injected) || env.walletUA);
+  if (env.walletUA) return true;
+  return !!(env.wallet && env.wallet.providers.some((p) => NOT_A_WALLET_APP.indexOf(p.id) === -1));
 }
 
 /** What should the handoff page do for this visitor? */

@@ -29,7 +29,7 @@
   <p class="sr-only" id="status" role="status" aria-live="polite"></p>
 
   <div class="actions">
-    <a class="btn btn-subtle" id="continueBtn" href="https://katana.network">Continue in browser</a>
+    <a class="btn btn-subtle" id="continueBtn" href="https://perps.katana.network">Continue in browser</a>
     <button class="btn btn-subtle" id="copyBtn" type="button">
       <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="5.5" y="5.5" width="9" height="9" rx="2" stroke="currentColor"/><path d="M10.5 3.5v-1a1 1 0 00-1-1h-7a1 1 0 00-1 1v7a1 1 0 001 1h1" stroke="currentColor"/></svg>
       <span>Copy link</span>
@@ -44,6 +44,14 @@
 
 </main>
 
+<script>
+  // Safety net: if the app script can't run (very old webview, blocked or failed load),
+  // reveal the page so the Continue button is still usable.
+  setTimeout(function () {
+    var b = document.body;
+    if (!b.classList.contains("is-redirecting")) b.classList.remove("is-checking");
+  }, 2500);
+</script>
 <script type="module" src="/src/handoff.ts"></script>
 </body>
 </html>

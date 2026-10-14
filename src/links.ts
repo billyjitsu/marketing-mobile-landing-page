@@ -70,9 +70,11 @@ export function resolveTarget(loc: LocationLike, cfg: TargetConfig): string {
     }
   }
 
+  // Params already on the target win; everything else (including repeated keys) is appended.
   const out = u;
+  const existing = new Set(out.searchParams.keys());
   params.forEach((v, k) => {
-    if (RESERVED.indexOf(k) === -1 && !out.searchParams.has(k)) out.searchParams.append(k, v);
+    if (RESERVED.indexOf(k) === -1 && !existing.has(k)) out.searchParams.append(k, v);
   });
   return out.toString();
 }

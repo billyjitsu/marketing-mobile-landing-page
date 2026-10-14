@@ -6,7 +6,7 @@ import * as A from "./analytics";
 import type { AnalyticsProps } from "./detect";
 import type { WalletLink } from "./links";
 
-const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+import { $, copyWithFeedback } from "./dom";
 
 const params = new URLSearchParams(location.search);
 const opts: D.DecideOptions = { preview: params.has("preview"), framed: D.isFramed(window) };
@@ -15,8 +15,12 @@ const env = D.current(window);
 let decision = D.decide(env, C, opts);
 let viewTracked = false;
 
+function eventProps(extra?: AnalyticsProps): AnalyticsProps {
+  return { ...D.props(env), reason: decision.reason, ...extra };
+}
+
 function track(event: string, extra?: AnalyticsProps) {
-  A.track(event, { ...D.props(env), reason: decision.reason, ...extra });
+  A.track(event, eventProps(extra));
 }
 
 function trackView() {
@@ -25,16 +29,19 @@ function trackView() {
   track("wallet_handoff_view", { action: decision.action });
 }
 
-function go(url: string) {
+// Redirect visitors leave straight away, so the view event is sent with sendBeacon
+// once PostHog has loaded (no wait at all when analytics is off).
+function redirect() {
   document.body.classList.remove("is-checking");
   document.body.classList.add("is-redirecting");
-  location.replace(url);
+  viewTracked = true;
+  A.trackBeforeLeave("wallet_handoff_view", eventProps({ action: "redirect" }))
+    .then(() => location.replace(target));
 }
 
 // Fast path: desktop or an already-injected wallet redirect without waiting on the provider scan.
 if (decision.action === "redirect") {
-  trackView();
-  go(target);
+  redirect();
 } else {
   render();
 }
@@ -76,7 +83,11 @@ function render() {
     statusEl.textContent = text;
   }
 
+  // Only the latest tap's no-open check is live; a new tap cancels the previous one.
+  let cancelPending: (() => void) | null = null;
+
   function onWalletTap(w: WalletLink, row: HTMLElement) {
+    if (cancelPending) cancelPending();
     try { localStorage.setItem(C.storageKey, w.id); } catch {}
     track("wallet_handoff_clicked", { wallet: w.id });
     setRowStatus(row, "Opening " + w.name + "…");
@@ -87,9 +98,16 @@ function render() {
     document.addEventListener("visibilitychange", onHide);
     window.addEventListener("pagehide", onPageHide);
 
-    setTimeout(() => {
+    const cleanup = () => {
+      clearTimeout(timer);
       document.removeEventListener("visibilitychange", onHide);
       window.removeEventListener("pagehide", onPageHide);
+      cancelPending = null;
+    };
+    cancelPending = cleanup;
+
+    const timer = setTimeout(() => {
+      cleanup();
       if (!left) {
         setRowStatus(row, "Nothing opened? " + w.name + " may not be installed. Try another wallet or continue in your browser.");
         track("wallet_handoff_no_open", { wallet: w.id });
@@ -103,23 +121,7 @@ function render() {
 
   const copyBtn = $<HTMLButtonElement>("copyBtn");
   copyBtn.addEventListener("click", () => {
-    const label = copyBtn.querySelector("span")!;
-    function done(ok: boolean) {
-      label.textContent = ok ? "Copied" : "Copy failed";
-      setTimeout(() => { label.textContent = "Copy link"; }, 1800);
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(target).then(() => done(true), () => done(false));
-    } else {
-      const t = document.createElement("textarea");
-      t.value = target;
-      document.body.appendChild(t);
-      t.select();
-      let ok = false;
-      try { ok = document.execCommand("copy"); } catch {}
-      document.body.removeChild(t);
-      done(ok);
-    }
+    copyWithFeedback(target, copyBtn.querySelector("span")!, "Copy link");
     track("wallet_handoff_copy");
   });
 
@@ -130,7 +132,9 @@ function render() {
     const how = ios ? "tap the share or ⋯ button and choose Open in Safari" : "tap ⋮ and choose Open in browser";
     n.innerHTML = "<strong>You're inside the " + env.inApp.name + " app.</strong> Wallet links sometimes get blocked here. If a wallet doesn't open, " + how + " first.";
 
-    const escapes = L.escapeLinks(target, env.os.family).slice(0, 1);
+    // Escape links exist only for iOS and Android; other handheld OSes get the written instructions.
+    const family = env.os.family;
+    const escapes = family === "ios" || family === "android" ? L.escapeLinks(target, family).slice(0, 1) : [];
     if (escapes.length) {
       const row = document.createElement("div");
       row.className = "escape";
@@ -163,8 +167,8 @@ function render() {
   D.scanProviders(window, C.providerScanMs, (wallet) => {
     env.wallet = wallet;
     decision = D.decide(env, C, opts);
+    if (decision.action === "redirect") return redirect();
     trackView();
-    if (decision.action === "redirect") return go(target);
     renderEnvLine();
     document.body.classList.remove("is-checking");
   });

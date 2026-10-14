@@ -164,3 +164,35 @@ test("escape links", () => {
   assert.equal(android.href, "intent://perps.katana.network/?a=1#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=" + encodeURIComponent("https://perps.katana.network/?a=1") + ";end");
   assert.equal(L.escapeLinks(t, "ios")[0].href, "x-safari-https://perps.katana.network/?a=1");
 });
+
+test("built-in or unknown providers don't count as a wallet app on mobile", () => {
+  const scan = (id: string): D.WalletScan => ({ injected: true, scanned: true, providers: [{ source: "window.ethereum", id, name: id }] });
+  assert.equal(D.decide(env(UA.androidChrome, { brave: true }, scan("brave")), CFG).reason, "mobile-no-wallet");
+  assert.equal(D.decide(env(UA.iosSafari, {}, scan("unknown")), CFG).reason, "mobile-no-wallet");
+  assert.equal(D.decide(env(UA.iosSafari, {}, scan("trust")), CFG).reason, "wallet-browser");
+  assert.equal(D.hasWallet(env(UA.metamaskIOS)), true);
+});
+
+test("EIP-6963 announcements don't duplicate window providers", async () => {
+  const listeners: ((e: Event) => void)[] = [];
+  const win = {
+    ethereum: { isMetaMask: true },
+    addEventListener: (_: string, fn: (e: Event) => void) => listeners.push(fn),
+    removeEventListener: () => {},
+    dispatchEvent: () => {
+      const announce = (info: object) => listeners.forEach((fn) => fn(Object.assign(new Event("x"), { detail: { info } })));
+      announce({ uuid: "1", name: "MetaMask", rdns: "io.metamask" });
+      announce({ uuid: "2", name: "Rabby Wallet", rdns: "io.rabby" });
+      return true;
+    }
+  } as unknown as Window;
+  const wallet = await new Promise<D.WalletScan>((resolve) => D.scanProviders(win, 0, resolve));
+  assert.deepEqual(wallet.providers.map((p) => p.id), ["metamask", "rabby"]);
+  assert.equal(wallet.providers[0].rdns, "io.metamask");
+});
+
+test("repeated query params are all forwarded", () => {
+  assert.equal(L.resolveTarget({ search: "?tag=a&tag=b", pathname: "/" }, CFG), "https://perps.katana.network/?tag=a&tag=b");
+  const t = L.resolveTarget({ search: "?to=" + encodeURIComponent("https://perps.katana.network/?ref=x") + "&ref=y", pathname: "/" }, CFG);
+  assert.equal(t, "https://perps.katana.network/?ref=x");
+});

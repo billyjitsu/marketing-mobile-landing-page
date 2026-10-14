@@ -2,6 +2,7 @@ import "./styles.css";
 import { CONFIG as C } from "./config";
 import * as D from "./detect";
 import * as L from "./links";
+import { $, copyWithFeedback } from "./dom";
 
 type Cell = string | number | null | undefined | Node;
 type Row = [label: string, value: Cell, cls?: string];
@@ -12,7 +13,6 @@ interface UAData {
   brands?: { brand: string; version: string }[];
 }
 
-const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
 const params = new URLSearchParams(location.search);
 const uaOverride = params.get("ua");
@@ -129,13 +129,7 @@ function linkRow(name: string, href: string, opts: LinkRowOpts = {}): HTMLDivEle
 
   const copy = el("button", "btn btn-subtle btn-sm", "Copy");
   copy.type = "button";
-  copy.addEventListener("click", () => {
-    if (!navigator.clipboard) return;
-    navigator.clipboard.writeText(href).then(() => {
-      copy.textContent = "Copied";
-      setTimeout(() => { copy.textContent = "Copy"; }, 1500);
-    });
-  });
+  copy.addEventListener("click", () => { copyWithFeedback(href, copy, "Copy", 1500); });
   top.appendChild(copy);
 
   const open = el("a", "btn btn-subtle btn-sm", "Open");
@@ -194,10 +188,7 @@ function report(): string {
 }
 
 $("copyReport").addEventListener("click", function (this: HTMLElement) {
-  const label = this.querySelector("span")!;
-  function done(ok: boolean) { label.textContent = ok ? "Copied" : "Copy failed"; setTimeout(() => { label.textContent = "Copy report"; }, 1800); }
-  if (navigator.clipboard) navigator.clipboard.writeText(report()).then(() => done(true), () => done(false));
-  else done(false);
+  copyWithFeedback(report(), this.querySelector("span")!, "Copy report");
 });
 
 $("targetApply").addEventListener("click", () => {
