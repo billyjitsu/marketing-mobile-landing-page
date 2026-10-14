@@ -2,8 +2,6 @@ import "./styles.css";
 import { CONFIG as C } from "./config";
 import * as D from "./detect";
 import * as L from "./links";
-import * as A from "./analytics";
-import type { AnalyticsProps } from "./detect";
 import type { WalletLink } from "./links";
 
 import { $, copyWithFeedback } from "./dom";
@@ -13,30 +11,11 @@ const opts: D.DecideOptions = { preview: params.has("preview"), framed: D.isFram
 const target = L.resolveTarget(location, C);
 const env = D.current(window);
 let decision = D.decide(env, C, opts);
-let viewTracked = false;
 
-function eventProps(extra?: AnalyticsProps): AnalyticsProps {
-  return { ...D.props(env), reason: decision.reason, ...extra };
-}
-
-function track(event: string, extra?: AnalyticsProps) {
-  A.track(event, eventProps(extra));
-}
-
-function trackView() {
-  if (viewTracked) return;
-  viewTracked = true;
-  track("wallet_handoff_view", { action: decision.action });
-}
-
-// Redirect visitors leave straight away, so the view event is sent with sendBeacon
-// once PostHog has loaded (no wait at all when analytics is off).
 function redirect() {
   document.body.classList.remove("is-checking");
   document.body.classList.add("is-redirecting");
-  viewTracked = true;
-  A.trackBeforeLeave("wallet_handoff_view", eventProps({ action: "redirect" }))
-    .then(() => location.replace(target));
+  location.replace(target);
 }
 
 // Fast path: desktop or an already-injected wallet redirect without waiting on the provider scan.
@@ -89,7 +68,6 @@ function render() {
   function onWalletTap(w: WalletLink, row: HTMLElement) {
     if (cancelPending) cancelPending();
     try { localStorage.setItem(C.storageKey, w.id); } catch {}
-    track("wallet_handoff_clicked", { wallet: w.id });
     setRowStatus(row, "Opening " + w.name + "…");
 
     let left = false;
@@ -110,19 +88,16 @@ function render() {
       cleanup();
       if (!left) {
         setRowStatus(row, "Nothing opened? " + w.name + " may not be installed. Try another wallet or continue in your browser.");
-        track("wallet_handoff_no_open", { wallet: w.id });
       }
     }, C.noOpenTimeoutMs);
   }
 
   const continueBtn = $<HTMLAnchorElement>("continueBtn");
   continueBtn.href = target;
-  continueBtn.addEventListener("click", () => track("wallet_handoff_continue"));
 
   const copyBtn = $<HTMLButtonElement>("copyBtn");
   copyBtn.addEventListener("click", () => {
     copyWithFeedback(target, copyBtn.querySelector("span")!, "Copy link");
-    track("wallet_handoff_copy");
   });
 
   function renderInAppNotice() {
@@ -142,7 +117,6 @@ function render() {
         const a = document.createElement("a");
         a.href = e.href;
         a.textContent = e.label;
-        a.addEventListener("click", () => track("wallet_handoff_escape", { escape: e.id }));
         row.appendChild(a);
       });
       n.appendChild(row);
@@ -168,7 +142,6 @@ function render() {
     env.wallet = wallet;
     decision = D.decide(env, C, opts);
     if (decision.action === "redirect") return redirect();
-    trackView();
     renderEnvLine();
     document.body.classList.remove("is-checking");
   });

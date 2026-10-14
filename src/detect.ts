@@ -380,21 +380,3 @@ export function summary(env: Env): string {
   parts.push(hasWallet(env) ? "wallet detected" : "no wallet");
   return parts.join(" · ");
 }
-
-export type AnalyticsProps = Record<string, string | number | boolean | null | undefined>;
-
-/** Flat properties for analytics. */
-export function props(env: Env): AnalyticsProps {
-  return {
-    device: env.device.type,
-    mobile: env.device.handheld,
-    os: env.os.name,
-    os_version: env.os.version,
-    browser: env.browser.id,
-    browser_version: env.browser.version,
-    webview: env.browser.webview,
-    in_app: env.inApp ? env.inApp.id : null,
-    has_wallet: hasWallet(env),
-    wallet_browser: env.walletUA || (env.device.handheld && env.wallet && env.wallet.providers[0] ? env.wallet.providers[0].id : null)
-  };
-}

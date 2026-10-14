@@ -19,8 +19,6 @@ export interface HandoffConfig {
   /** How long to listen for EIP-6963 wallet announcements before deciding. */
   providerScanMs: number;
   storageKey: string;
-  /** Optional analytics. Leave key empty to disable. */
-  posthog: { key: string; host: string };
 }
 
 export const CONFIG: HandoffConfig = {
@@ -43,10 +41,5 @@ export const CONFIG: HandoffConfig = {
 
   providerScanMs: 300,
 
-  storageKey: "kp-last-wallet",
-
-  posthog: {
-    key: "",
-    host: "https://us.i.posthog.com"
-  }
+  storageKey: "kp-last-wallet"
 };

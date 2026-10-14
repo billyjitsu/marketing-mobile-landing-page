@@ -27,7 +27,6 @@ Edit `src/config.ts`:
 defaultTarget: "https://perps.katana.network",   // the Perps app URL
 allowedHosts: ["katana.network"],          // hosts allowed in ?to=, subdomains included
 wallets: ["metamask", "coinbase", "trust", "okx"],
-posthog: { key: "", host: "https://us.i.posthog.com" }
 ```
 
 Wallet deep link formats live in `src/links.ts`. Config is compiled into the bundle, so changes need a rebuild and deploy.
@@ -40,7 +39,6 @@ check/index.html      diagnostics page    -> src/check.ts
 src/config.ts         settings
 src/detect.ts         device / browser / wallet detection
 src/links.ts          target resolution and deep link builders
-src/analytics.ts      optional PostHog
 src/wallet-icons.ts   wallet SVGs
 src/styles.css        styles (+ bg.jpg)
 public/               copied as-is into dist/ (favicon)
@@ -123,21 +121,6 @@ Delete `vercel.json` and recreate these settings in the new host's config:
 - **Domain**: point `go.katana.network` (or whatever you use) at the host over HTTPS.
 
 Run `npm test` before `npm run build` in the build step.
-
-## Analytics
-
-Set `posthog.key` in config. Events:
-
-| Event | When |
-|---|---|
-| `wallet_handoff_view` | Page loads (includes `action`: show or redirect) |
-| `wallet_handoff_clicked` | Wallet tapped (`wallet`) |
-| `wallet_handoff_no_open` | Wallet app didn't take over within 2s |
-| `wallet_handoff_escape` | "Open in Safari / Chrome" tapped |
-| `wallet_handoff_continue` | Continue in browser tapped |
-| `wallet_handoff_copy` | Copy link tapped |
-
-Every event carries `device`, `os`, `os_version`, `browser`, `webview`, `in_app`, `has_wallet`, `wallet_browser` and `reason`.
 
 ## Test on real devices
 
