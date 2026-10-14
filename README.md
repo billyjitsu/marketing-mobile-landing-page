@@ -144,3 +144,7 @@ Quick check for any deep link: paste it into the iPhone Notes app and tap it. Do
 - Rabby Mobile has no documented dapp-browser deep link. Those visitors should use WalletConnect from the normal browser.
 - Coinbase, Trust and OKX link formats are widely used but still need device testing. MetaMask is confirmed.
 - OKX has two apps. `okx` opens the standalone **OKX Wallet** app (self-custody, `com.okx.wallet`) through `web3link.okx.com` and `okxwallet://`. `okxapp` opens the main **OKX** exchange app through `www.okx.com` and `okx://`. OKX is phasing the wallet out of the exchange app, so `okx` is the one to keep long term. The `okxwallet://wallet/dapp/url` path is copied from the exchange app's format and hasn't been confirmed by OKX docs, so test it first. `/check/` also lists the raw schemes and a link that works with either app.
+
+## License
+
+MIT. See [LICENSE](LICENSE). Katana branding and wallet logos are trademarks of their owners and are not covered by the license.

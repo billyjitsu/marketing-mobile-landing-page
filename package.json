@@ -1,6 +1,7 @@
 {
   "name": "marketing-mobile-landing-page",
   "private": true,
+  "license": "MIT",
   "description": "Mobile wallet handoff landing page for Katana Perps",
   "type": "module",
   "scripts": {
