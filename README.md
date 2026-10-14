@@ -43,7 +43,7 @@ src/links.ts          target resolution and deep link builders
 src/analytics.ts      optional PostHog
 src/wallet-icons.ts   wallet SVGs
 src/styles.css        styles (+ bg.jpg)
-public/               copied as-is: _headers, _redirects, favicon
+public/               copied as-is into dist/ (favicon)
 test/                 vitest
 ```
 
@@ -82,7 +82,7 @@ Every visit to `/` runs `src/handoff.ts`:
    - **Otherwise** the picker renders while the page listens for EIP-6963 wallet announcements for `providerScanMs` (300 ms). It then runs `decide()` again and redirects if a wallet showed up.
 5. **Wallet buttons**: these are plain `<a href>` deep links built by `walletLinks()` in `src/links.ts`. Each one opens the wallet app with `target` loaded in its dapp browser. If the page is still visible after `noOpenTimeoutMs` (2 s), the row shows a "Nothing opened?" hint.
 
-Path passthrough (`/trade/ETH`) relies on the catch-all rewrite in `public/_redirects`, which serves `index.html` for unknown paths.
+Path passthrough (`/trade/ETH`) needs the host to serve `index.html` for unknown paths (see [Deploy](#deploy)).
 
 ## Run locally
 
@@ -95,25 +95,20 @@ npm run build      # typecheck + build to dist/
 npm run preview    # serve dist/
 ```
 
-Path passthrough (`/trade/ETH`) only works on Netlify, where the rewrite in `public/_redirects` applies. Locally, use `/?to=…` instead.
-
 Deep links **can't** be tested from localhost on a phone or from a desktop emulator. Deploy first.
 
-## Deploy to Netlify
+## Deploy
 
-**Drag and drop:** run `npm run build`, then drop the `dist` folder on app.netlify.com/drop. Headers and path passthrough come along in `_headers` and `_redirects` (copied from `public/`).
+`npm run build` outputs a fully static site to `dist/`. Host it anywhere that serves static files (Vercel, Cloudflare Pages, S3 + CloudFront, GitHub Pages, nginx…).
 
-**From Git (recommended):** push this folder to a repo, then in Netlify choose *Add new site → Import an existing project*. `netlify.toml` runs the tests and build on every deploy and publishes `dist`.
+Host settings to add:
 
-**CLI:**
+- **Catch-all rewrite** (only for path passthrough): serve `/index.html` with a 200 for any path that isn't a real file, so `/trade/ETH` loads the handoff page. Real files (`/`, `/check/`, `/assets/*`) must still be served first.
+- **Caching**: `/assets/*` is content-hashed by Vite and can be cached as `public, max-age=31536000, immutable`. Keep HTML at `max-age=0, must-revalidate` so config changes go live on deploy.
+- **Security headers** (recommended): `Referrer-Policy: strict-origin-when-cross-origin`, `X-Content-Type-Options: nosniff`, `Strict-Transport-Security: max-age=31536000; includeSubDomains`.
+- **Domain**: point `go.katana.network` (or whatever you use) at the host over HTTPS.
 
-```sh
-npx netlify-cli deploy --prod
-```
-
-**Custom domain:** in Netlify, go to *Domain management → Add a domain* and enter `go.katana.network`. Then add a `CNAME` record for `go` pointing to `<your-site>.netlify.app`. HTTPS is issued automatically.
-
-Other static hosts (Vercel, Cloudflare Pages, GitHub Pages) work too. Build, serve `dist/`, and add a catch-all rewrite to `/index.html` if you want path passthrough.
+Run `npm test` before `npm run build` in CI.
 
 ## Analytics
 
